@@ -92,7 +92,7 @@ func (r *Reader) GatherConfig() (*config.Config, error) {
 		if isTrueMax {
 			cfg.TrainingMaxes[lift] = config.CalculateTrainingMax(maxVal)
 		} else {
-			cfg.TrainingMaxes[lift] = config.RoundToNearest5(maxVal)
+			cfg.TrainingMaxes[lift] = maxVal
 		}
 	}
 

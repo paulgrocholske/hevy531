@@ -66,9 +66,9 @@ func NewDefaultConfig() *Config {
 	}
 }
 
-// CalculateTrainingMax returns 90% of the true 1RM, rounded to nearest 5
+// CalculateTrainingMax returns 90% of the true 1RM (unrounded for precision)
 func CalculateTrainingMax(true1RM float64) float64 {
-	return RoundToNearest5(true1RM * 0.9)
+	return true1RM * 0.9
 }
 
 // RoundToNearest5 rounds a weight to the nearest 5 lbs
