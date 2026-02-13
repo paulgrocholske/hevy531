@@ -79,7 +79,7 @@ func (r *Reader) readChoice(prompt string, options []string) int {
 func (r *Reader) GatherConfig() (*config.Config, error) {
 	cfg := config.NewDefaultConfig()
 
-	fmt.Println("\n=== 5/3/1 BBB Program Generator ===\n")
+	fmt.Print("\n=== 5/3/1 BBB Program Generator ===\n\n")
 
 	// Step 1: Get 1RM values and determine if they're true 1RM or training max
 	fmt.Println("Enter your max for each lift.")
