@@ -15,6 +15,15 @@ type Reader struct {
 	scanner *bufio.Scanner
 }
 
+// ConfigStartMode controls how config is sourced when memory exists
+type ConfigStartMode int
+
+const (
+	ConfigStartFresh ConfigStartMode = iota
+	ConfigStartReuseSaved
+	ConfigStartNextCycle
+)
+
 // NewReader creates a new prompt reader
 func NewReader() *Reader {
 	return &Reader{
@@ -72,6 +81,25 @@ func (r *Reader) readChoice(prompt string, options []string) int {
 			continue
 		}
 		return choice - 1 // Return 0-indexed
+	}
+}
+
+// ChooseConfigStartMode asks how to start when a saved config exists
+func (r *Reader) ChooseConfigStartMode() ConfigStartMode {
+	options := []string{
+		"Start fresh and enter all values",
+		"Reuse saved configuration as-is",
+		"Recalculate next cycle (+10 lbs squat/deadlift, +5 lbs bench/OHP)",
+	}
+
+	choice := r.readChoice("How would you like to start?", options)
+	switch choice {
+	case 1:
+		return ConfigStartReuseSaved
+	case 2:
+		return ConfigStartNextCycle
+	default:
+		return ConfigStartFresh
 	}
 }
 
@@ -201,6 +229,12 @@ func (r *Reader) AskHevyUpload() bool {
 func (r *Reader) GetHevyAPIKey() string {
 	fmt.Print("Enter your Hevy API key: ")
 	return r.readLine()
+}
+
+// AskSaveMemory asks whether to save current config for future runs
+func (r *Reader) AskSaveMemory() bool {
+	fmt.Println("\n--- Program Memory ---")
+	return r.readYesNo("Save this configuration for reuse/recalculation next cycle?")
 }
 
 // ReadString reads a single line of input (exported for general use)

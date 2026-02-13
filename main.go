@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"lifting/config"
 	"lifting/export"
 	"lifting/hevy"
+	"lifting/memory"
 	"lifting/program"
 	"lifting/prompt"
 )
@@ -15,8 +17,13 @@ import (
 func main() {
 	reader := prompt.NewReader()
 
-	// Gather configuration interactively
-	cfg, err := reader.GatherConfig()
+	// Gather configuration, optionally using saved memory
+	snapshot, err := memory.Load(memory.DefaultFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to load memory file: %v\n", err)
+	}
+
+	cfg, err := gatherConfig(reader, snapshot)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error gathering config: %v\n", err)
 		os.Exit(1)
@@ -41,7 +48,44 @@ func main() {
 		fmt.Printf("\nProgram exported to %s\n", filename)
 	}
 
+	if reader.AskSaveMemory() {
+		if err := memory.Save(memory.DefaultFile, cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to save memory: %v\n", err)
+		} else {
+			fmt.Printf("Saved program memory to %s\n", memory.DefaultFile)
+		}
+	}
+
 	fmt.Println("\nHappy lifting!")
+}
+
+func gatherConfig(reader *prompt.Reader, snapshot *memory.Snapshot) (*config.Config, error) {
+	if snapshot == nil {
+		return reader.GatherConfig()
+	}
+
+	fmt.Printf("\nFound saved configuration from %s\n", snapshot.SavedAt.Local().Format(time.RFC1123))
+	printTrainingMaxes(snapshot.Config.TrainingMaxes)
+
+	switch reader.ChooseConfigStartMode() {
+	case prompt.ConfigStartReuseSaved:
+		fmt.Println("\nUsing saved configuration.")
+		return memory.CloneConfig(snapshot.Config), nil
+	case prompt.ConfigStartNextCycle:
+		fmt.Println("\nApplying standard 5/3/1 training max increases for next cycle...")
+		next := memory.NextCycleConfig(snapshot.Config)
+		printTrainingMaxes(next.TrainingMaxes)
+		return next, nil
+	default:
+		return reader.GatherConfig()
+	}
+}
+
+func printTrainingMaxes(maxes config.LiftMaxes) {
+	fmt.Println("Training maxes:")
+	for _, lift := range config.AllLifts() {
+		fmt.Printf("  %s: %.0f lbs\n", lift, maxes[lift])
+	}
 }
 
 func uploadToHevy(reader *prompt.Reader, prog *program.Program) error {

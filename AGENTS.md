@@ -25,6 +25,7 @@ The entrypoint is interactive (`go run .`), not flag-driven.
 - `export/csv.go`: CSV writer
 - `hevy/client.go`: Hevy API client + exercise mapping/aliases + lbs->kg conversion
 - `hevy/converter.go`: converts generated program days into Hevy routine payloads
+- `memory/memory.go`: persisted local config memory and next-cycle TM recalculation
 
 ## Core Behavior Invariants
 
@@ -39,6 +40,7 @@ Preserve these unless a task explicitly changes them:
 7. Hevy sync uses week folders named `531 BBB Week {n}` and updates existing routines by title.
 8. Hevy routine updates must omit `folder_id` (allowed on create, not on update).
 9. Hevy sync includes retry/backoff behavior for rate-limit style failures.
+10. Memory-based next-cycle recalculation applies +10 lbs to Squat/Deadlift and +5 lbs to Bench/OHP.
 
 ## Development Workflow
 
